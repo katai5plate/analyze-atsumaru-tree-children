@@ -3,7 +3,12 @@ const { intervalTime } = require("./options");
 
 module.exports = url =>
   new Promise(resolve => {
+    console.log("// | cooldown...");
     setTimeout(() => {
-      axios.get(url).then(x => resolve(x.data));
+      console.log("// | start");
+      axios.get(url).then(x => {
+        console.log("// | ok");
+        resolve(x.data);
+      });
     }, intervalTime);
   });
