@@ -100,7 +100,7 @@ fs.mkdirp("dist");
 
   // コンテンツツリーページから子作品数を取り出す
   const child = await step(gamesWithAd, async ({ id }, i, { length }) => {
-    const url = `http://commons.nicovideo.jp/tree/${id}`;
+    const url = `https://commons.nicovideo.jp/tree/${id}`;
     console.log("// fetch:", url);
     const $ = cheerio.load(await fetch(url));
     console.log("// success!", (i / length) * 100, "%");

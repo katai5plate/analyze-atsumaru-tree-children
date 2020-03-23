@@ -1,0 +1,141 @@
+<html>
+  <head>
+    <link
+      href="https://unpkg.com/tabulator-tables@4.5.3/dist/css/tabulator.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <script
+      type="text/javascript"
+      src="https://unpkg.com/tabulator-tables@4.5.3/dist/js/tabulator.min.js"
+    ></script>
+    <div id="hidden">
+      <h2>ここにJSONデータを貼り付けて下のボタンを押す</h2>
+      <textarea id="text" rows="20" style="width: 100%;"> </textarea>
+      <button
+        style="width: 100%; height: 100; font-size:xx-large"
+        onclick="window.drawTable(document.getElementById('text').value)"
+      >
+        決定
+      </button>
+    </div>
+    <div id="table"></div>
+    <script type="text/javascript">
+      window.drawTable = json => {
+        document.getElementById("hidden").style.display = "none";
+        new Promise(resolve => resolve(JSON.parse(json)))
+          .then(data => {
+            const toDate = x =>
+              new Date(x.replace(/\//g, "-").replace(/ /g, "T") + "Z");
+            const formatDate = x =>
+              `${x.split(" ")[0]} ${"日月火水木金土"[toDate(x).getDay()]} ${
+                x.match(/ (.*?):/)[1]
+              }`;
+            const table = new Tabulator("#table", {
+              data: data.result.map(x => ({
+                ...x,
+                rank: x.index + 1,
+                tagCount: x.tags.length,
+                releaseYear: toDate(x.releaseTime).getFullYear(),
+                releaseMon: toDate(x.releaseTime).getMonth() + 1,
+                releaseDay: toDate(x.releaseTime).getDate(),
+                releaseHour: toDate(x.releaseTime).getHours(),
+                releaseMin: toDate(x.releaseTime).getMinutes(),
+                releaseSec: toDate(x.releaseTime).getSeconds(),
+                releaseDow: "日月火水木金土"[toDate(x.releaseTime).getDay()],
+                upgradeYear: toDate(x.upgradeTime).getFullYear(),
+                upgradeMon: toDate(x.upgradeTime).getMonth() + 1,
+                upgradeDay: toDate(x.upgradeTime).getDate(),
+                upgradeHour: toDate(x.upgradeTime).getHours(),
+                upgradeMin: toDate(x.upgradeTime).getMinutes(),
+                upgradeSec: toDate(x.upgradeTime).getSeconds(),
+                upgradeDow: "日月火水木金土"[toDate(x.upgradeTime).getDay()]
+              })),
+              columns: [
+                {
+                  field: "rank"
+                },
+                {
+                  title: "タイトル",
+                  field: "title",
+                  width: 375,
+                  formatter: "link",
+                  formatterParams: {
+                    urlField: "id",
+                    urlPrefix: "https://game.nicovideo.jp/atsumaru/games/"
+                  }
+                },
+                {
+                  title: "作者",
+                  field: "creatorName",
+                  width: 150,
+                  formatter: "link",
+                  formatterParams: {
+                    urlField: "creatorId",
+                    urlPrefix: "https://game.nicovideo.jp/atsumaru/users/"
+                  }
+                },
+                { title: "プレイ", field: "playCount" },
+                {
+                  title: "コメント",
+                  field: "commentCount"
+                },
+                {
+                  title: "子",
+                  field: "childCount",
+                  formatter: "link",
+                  formatterParams: {
+                    urlField: "id",
+                    urlPrefix: "https://commons.nicovideo.jp/tree/"
+                  }
+                },
+                {
+                  title: "広告",
+                  columns: [
+                    { title: "継続", field: "activePoint" },
+                    { title: "累計", field: "totalPoint" }
+                  ]
+                },
+                {
+                  title: "日時",
+                  columns: [
+                    {
+                      title: "継続",
+                      columns: [
+                        { title: "年", field: "releaseYear" },
+                        { title: "月", field: "releaseMon" },
+                        { title: "曜", field: "releaseDow" },
+                        { title: "時", field: "releaseHour" }
+                      ]
+                    },
+                    {
+                      title: "更新",
+                      columns: [
+                        { title: "年", field: "upgradeYear" },
+                        { title: "月", field: "upgradeMon" },
+                        { title: "曜", field: "upgradeDow" },
+                        { title: "時", field: "upgradeHour" }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  title: "解像度",
+                  columns: [
+                    { title: "横", field: "width" },
+                    { title: "縦", field: "height" }
+                  ]
+                },
+                { title: "タグ数", field: "tagCount" }
+              ]
+            });
+          })
+          .catch(e => {
+            console.log(e);
+            document.write('<a href="/">読み込みに失敗しました。</a>');
+          });
+      };
+    </script>
+  </body>
+</html>
