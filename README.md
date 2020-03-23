@@ -1,0 +1,2 @@
+# analyze-atsumaru-tree-children
+RPGアツマールのコンテンツツリー子作品数をランキングからソートしたい
