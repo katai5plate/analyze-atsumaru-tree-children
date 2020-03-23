@@ -15,12 +15,17 @@ fs.mkdirp("dist");
   if (!TYPES.includes(type)) return `${TYPES.join(" | ")} ?`;
   if (limit < 1 || 100 < limit) return `limit is 1-100`;
 
-  const filename = `dist/${type}_${limit}_${moment().format(
+  const FILENAME = `dist/${type}_${limit}_${moment().format(
     "YYYYMMDDHHmmss"
   )}.json`;
+
+  const API_RANKING = `https://public.api.nicovideo.jp/v1/rpgtkool/ranking.json?_limit=${limit}&rankingType=${type}`;
+  const API_ADS =
+    "https://api.nicoad.nicovideo.jp/v1/contents/atsumaru/decoration?ids=";
+
   const output = (res, status) => {
     fs.writeJSONSync(
-      filename,
+      FILENAME,
       { meta: { type, limit: Number(limit), status }, result: res },
       { spaces: 2 }
     );
@@ -36,7 +41,6 @@ fs.mkdirp("dist");
   deleteTemp(true);
 
   // アツマールランキング API から目ぼしいデータだけ取り出す
-  const API_RANKING = `https://public.api.nicovideo.jp/v1/rpgtkool/ranking.json?_limit=${limit}&rankingType=${type}`;
   console.log("// fetch:", API_RANKING);
   const toTimeText = time => moment(time * 1000).format("YYYY/MM/DD HH:mm:ss");
   const games = (await fetch(API_RANKING)).data.games.map(
@@ -74,12 +78,28 @@ fs.mkdirp("dist");
   );
   console.log("// success!");
 
+  // ニコニ広告を取得
+  const adUrl = API_ADS + games.map(x => x.id).join(",");
+  console.log("// fetch:", adUrl);
+  const ads = (await fetch(adUrl)).data.contents.reduce(
+    (p, { id, ...rest }) => ({ ...p, [id]: { ...rest } }),
+    {}
+  );
+  console.log("// success!");
+
+  // 結合
+  const gamesWithAd = games.map((x, i) => ({
+    ...x,
+    activePoint: ads[x.id].activePoint,
+    totalPoint: ads[x.id].totalPoint
+  }));
+
   // 途中結果を出力
-  output(games, "working");
-  console.log("// create:", filename);
+  output(gamesWithAd, "working");
+  console.log("// create:", FILENAME);
 
   // コンテンツツリーページから子作品数を取り出す
-  const child = await step(games, async ({ id }, i, { length }) => {
+  const child = await step(gamesWithAd, async ({ id }, i, { length }) => {
     const url = `http://commons.nicovideo.jp/tree/${id}`;
     console.log("// fetch:", url);
     const $ = cheerio.load(await fetch(url));
@@ -94,12 +114,12 @@ fs.mkdirp("dist");
   });
 
   // 結合
-  const result = games.map((x, i) => ({ ...x, childCount: child[i] }));
+  const result = gamesWithAd.map((x, i) => ({ ...x, childCount: child[i] }));
 
   // 結果出力
   output(result, "done");
   deleteTemp(false);
-  console.log("// update:", filename);
+  console.log("// update:", FILENAME);
 
   return result;
 })().then(console.log);
