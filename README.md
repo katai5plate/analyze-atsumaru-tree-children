@@ -41,7 +41,8 @@ yarn cls
 
 ### 出力結果
 
-`dist` ディレクトリに JSON ファイルが吐き出されます。
+- `dist` ディレクトリに JSON ファイルが吐き出されます。
+- [こんな感じのが出力されます](https://gist.github.com/katai5plate/ff6e0cf583bf3bbcbf61deb39188c4ae)
 
 ### 補足
 
