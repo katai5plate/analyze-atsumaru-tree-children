@@ -25,6 +25,15 @@ fs.mkdirp("dist");
       { spaces: 2 }
     );
   };
+  const temp = res => {
+    fs.appendFileSync("dist/temp.txt", res + "\n");
+  };
+  const deleteTemp = reset => {
+    fs.removeSync("dist/temp.txt");
+    if (reset) fs.writeFileSync("dist/temp.txt", "");
+  };
+
+  deleteTemp(true);
 
   // アツマールランキング API から目ぼしいデータだけ取り出す
   const API_RANKING = `https://public.api.nicovideo.jp/v1/rpgtkool/ranking.json?_limit=${limit}&rankingType=${type}`;
@@ -70,25 +79,26 @@ fs.mkdirp("dist");
   console.log("// create:", filename);
 
   // コンテンツツリーページから子作品数を取り出す
-  const child = await step(
-    games.map(({ id }) => `http://commons.nicovideo.jp/tree/${id}`),
-    async (url, i, { length }) => {
-      console.log("// fetch:", url);
-      const $ = cheerio.load(await fetch(url));
-      console.log("// success!", (i / length) * 100, "%");
-      return Number(
-        $("#ChildBox > h3 > span.num")
-          .text()
-          .replace(/（(\d{1,})）/, "$1")
-      );
-    }
-  );
+  const child = await step(games, async ({ id }, i, { length }) => {
+    const url = `http://commons.nicovideo.jp/tree/${id}`;
+    console.log("// fetch:", url);
+    const $ = cheerio.load(await fetch(url));
+    console.log("// success!", (i / length) * 100, "%");
+    const value = Number(
+      $("#ChildBox > h3 > span.num")
+        .text()
+        .replace(/（(\d{1,})）/, "$1")
+    );
+    temp(`${JSON.stringify({ id, childCount: value })},`);
+    return value;
+  });
 
   // 結合
   const result = games.map((x, i) => ({ ...x, childCount: child[i] }));
 
   // 結果出力
   output(result, "done");
+  deleteTemp(false);
   console.log("// update:", filename);
 
   return result;
