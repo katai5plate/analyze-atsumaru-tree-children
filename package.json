@@ -1,0 +1,14 @@
+{
+  "name": "analyze-atsumaru-tree-children",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/katai5plate/analyze-atsumaru-tree-children",
+  "author": "katai5plate <katai5plate.sub@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "cheerio": "^1.0.0-rc.3",
+    "fs-extra": "^9.0.0",
+    "moment": "^2.24.0"
+  }
+}
